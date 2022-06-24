@@ -1,8 +1,12 @@
-package com.longkai.androidarchit
+package com.longkai.androidarchit.view
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.longkai.androidarchit.R
+import com.longkai.androidarchit.model.MainModel
 import kotlinx.android.synthetic.main.activity_detail.*
 
 class DetailActivity : AppCompatActivity() {
@@ -11,9 +15,9 @@ class DetailActivity : AppCompatActivity() {
     val bundle = intent.extras
     setContentView(R.layout.activity_detail)
     if (bundle != null) {
-      Log.d(Companion.TAG, "onCreate: " + (bundle.getString(MainActivity.MovieInfo.RANTING)))
-    }else{
-      Log.d(Companion.TAG, "onCreate: bundle is null")
+      Log.d(TAG, "onCreate: " + (bundle.getString(MainActivity.MovieInfo.RANTING)))
+    } else {
+      Log.d(TAG, "onCreate: bundle is null")
     }
     if (bundle != null) {
       detail_rating.text = "${MainActivity.MovieInfo.RANTING.capitalize()}: ${
@@ -37,5 +41,16 @@ class DetailActivity : AppCompatActivity() {
 
   companion object {
     private const val TAG = "DetailActivity"
+
+    fun startDetailActivity(activity: Activity, resultEntity: MainModel.ResultEntity) {
+      var bundle = Bundle()
+      bundle.putString(MainActivity.MovieInfo.RANTING, resultEntity.rating)
+      bundle.putString(MainActivity.MovieInfo.TITLE, resultEntity.title)
+      bundle.putString(MainActivity.MovieInfo.YEAR, resultEntity.year)
+      bundle.putString(MainActivity.MovieInfo.DATE, resultEntity.data)
+      val intent = Intent(activity, DetailActivity::class.java)
+      intent.putExtras(bundle)
+      activity.startActivity(intent)
+    }
   }
 }

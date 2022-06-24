@@ -3,4 +3,6 @@
   <string name="edit_hint">Please enter full or part of a movie name"</string>
   <string name="search">search</string>
   <string name="detail">Detail</string>
+  <string name="error_getting_results">Error getting results: %s</string>
+
 </resources>
