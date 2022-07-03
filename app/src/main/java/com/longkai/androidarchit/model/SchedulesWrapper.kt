@@ -1,4 +1,4 @@
-package com.longkai.androidarchit
+package com.longkai.androidarchit.model
 
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers

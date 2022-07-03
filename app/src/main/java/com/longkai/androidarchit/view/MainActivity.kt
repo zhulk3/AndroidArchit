@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.longkai.androidarchit.R
-import com.longkai.androidarchit.controller.MainController
 import com.longkai.androidarchit.model.MainModel
+import com.longkai.androidarchit.presenter.MainPresenter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item.view.*
 
@@ -25,9 +25,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private lateinit var addressAdapter: AddressAdapter
-  private lateinit var model: MainModel
-  private lateinit var controller: MainController
-
+  private lateinit var presenter: MainPresenter
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -35,21 +33,20 @@ class MainActivity : AppCompatActivity() {
     addressAdapter = AddressAdapter(onClick = { item ->
       DetailActivity.startDetailActivity(this, item)
     })
-    controller = MainController()
-    model = MainModel(controller)
-    controller hasView this
-    controller hasModel model
+
+    presenter = MainPresenter(MainModel())
+    presenter hasView this
 
     val layoutManager = LinearLayoutManager(this)
     layoutManager.orientation = LinearLayoutManager.VERTICAL
     recyclerView.layoutManager = layoutManager
     recyclerView.adapter = addressAdapter
-    search_movie_btn.setOnClickListener { controller.findAddress(edit_text.text.toString()) }
+    search_movie_btn.setOnClickListener { presenter.findAddress(edit_text.text.toString()) }
 
   }
 
   @SuppressLint("NotifyDataSetChanged")
-  private fun updateRecyclerView(results: List<MainModel.ResultEntity>) {
+  fun updateRecyclerView(results: List<MainModel.ResultEntity>) {
     addressAdapter.updateList(results)
     addressAdapter.notifyDataSetChanged()
   }
@@ -62,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onStop() {
     super.onStop()
-    controller.onStop()
+    presenter.onStop()
   }
 
   fun showError() {
@@ -73,10 +70,6 @@ class MainActivity : AppCompatActivity() {
     ).show()
   }
 
-  fun showResult() {
-    //mvc中，view被通知数据改变后，主动去取得数据，需要与model发生交互
-    updateRecyclerView(model.mList)
-  }
 
   fun showProgressBar() {
     progress_bar.visibility = View.VISIBLE
