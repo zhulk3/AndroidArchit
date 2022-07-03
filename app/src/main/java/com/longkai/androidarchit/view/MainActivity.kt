@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.longkai.androidarchit.R
 import com.longkai.androidarchit.model.MainModel
-import com.longkai.androidarchit.presenter.MainPresenter
+import com.longkai.androidarchit.viewModel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item.view.*
 
@@ -25,32 +25,40 @@ class MainActivity : AppCompatActivity() {
   }
 
   private lateinit var addressAdapter: AddressAdapter
-  private lateinit var presenter: MainPresenter
+  private lateinit var viewModel: MainViewModel
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
-    addressAdapter = AddressAdapter(onClick = { item ->
-      DetailActivity.startDetailActivity(this, item)
-    })
-
-    presenter = MainPresenter(MainModel())
-    presenter hasView this
-
+    addressAdapter = AddressAdapter()
+    viewModel = MainViewModel(MainModel())
+    addressAdapter setItemClickMethod viewModel::doOnItemClick
     val layoutManager = LinearLayoutManager(this)
     layoutManager.orientation = LinearLayoutManager.VERTICAL
     recyclerView.layoutManager = layoutManager
     recyclerView.adapter = addressAdapter
-    search_movie_btn.setOnClickListener { presenter.findAddress(edit_text.text.toString()) }
+    listenToObservable()
+    search_movie_btn.setOnClickListener {
+      showProgressBar();viewModel.findAddress(
+      edit_text.text
+        .toString()
+    )
+    }
 
   }
 
   @SuppressLint("NotifyDataSetChanged")
-  fun updateRecyclerView(results: List<MainModel.ResultEntity>) {
-    addressAdapter.updateList(results)
+  fun updateRecyclerView(t: List<String>) {
+    addressAdapter.updateList(t)
     addressAdapter.notifyDataSetChanged()
   }
 
+  @SuppressLint("CheckResult")
+  private fun listenToObservable() {
+    viewModel.resultListObservable.subscribe { hideProgressBar();updateRecyclerView(it) }
+    viewModel.itemObservable.subscribe { DetailActivity.startDetailActivity(this, it) }
+    viewModel.resultListErrorObservable.subscribe { hideProgressBar();showError() }
+  }
 
   override fun onResume() {
     super.onResume()
@@ -59,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onStop() {
     super.onStop()
-    presenter.onStop()
+    viewModel.cancelNetworkConnections()
   }
 
   fun showError() {
@@ -79,15 +87,16 @@ class MainActivity : AppCompatActivity() {
     progress_bar.visibility = View.GONE
   }
 
-  class AddressAdapter(val onClick: (item: MainModel.ResultEntity) -> Unit) : RecyclerView
+  class AddressAdapter : RecyclerView
   .Adapter<AddressAdapter.Holder>() {
-    var mList: List<MainModel.ResultEntity> = arrayListOf()
+    var mList: List<String> = arrayListOf()
+    private lateinit var mOnClick: (position: Int) -> Unit
 
     override fun getItemCount(): Int {
       return mList.size
     }
 
-    fun updateList(list: List<MainModel.ResultEntity>) {
+    fun updateList(list: List<String>) {
       mList = list
     }
 
@@ -98,9 +107,13 @@ class MainActivity : AppCompatActivity() {
       return Holder(view)
     }
 
+    infix fun setItemClickMethod(onClick: (position: Int) -> Unit) {
+      mOnClick = onClick
+    }
+
     override fun onBindViewHolder(holder: Holder, position: Int) {
-      holder.itemView.item_textview.text = "${mList[position].year}: ${mList[position].title}"
-      holder.itemView.setOnClickListener { onClick(mList[position]) }
+      holder.itemView.item_textview.text = mList[position]
+      holder.itemView.setOnClickListener { mOnClick(position) }
     }
   }
 
