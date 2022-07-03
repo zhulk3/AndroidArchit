@@ -1,29 +1,21 @@
 package com.longkai.androidarchit.viewModel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.longkai.androidarchit.model.MainModel
 import com.longkai.androidarchit.model.SchedulesWrapper
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DisposableObserver
-import io.reactivex.subjects.PublishSubject
 import retrofit2.HttpException
 
-class MainViewModel() {
-  lateinit var resultListObservable: PublishSubject<List<String>>
-  lateinit var resultListErrorObservable: PublishSubject<HttpException>
-  lateinit var itemObservable: PublishSubject<MainModel.ResultEntity>
+class MainViewModel(val model: MainModel) {
+  private var resultListObservable = MutableLiveData<List<String>>()
+  private var resultListErrorObservable = MutableLiveData<HttpException>()
+  private var itemObservable = MutableLiveData<MainModel.ResultEntity>()
   private lateinit var entityList: List<MainModel.ResultEntity>
   private val compositeDisposable: CompositeDisposable = CompositeDisposable()
   private var schedulesWrapper: SchedulesWrapper = SchedulesWrapper()
-  private lateinit var model: MainModel
-
-
-  constructor(model: MainModel) : this() {
-    this.model = model
-    resultListObservable = PublishSubject.create();
-    resultListErrorObservable = PublishSubject.create()
-    itemObservable = PublishSubject.create()
-  }
 
 
   fun findAddress(address: String) {
@@ -34,14 +26,14 @@ class MainViewModel() {
         .subscribeWith(object : DisposableObserver<List<MainModel.ResultEntity>?>() {
           override fun onNext(t: List<MainModel.ResultEntity>) {
             entityList = t
-            resultListObservable.onNext(fetchItemTextFrom(t))
+            resultListObservable.postValue(fetchItemTextFrom(t))
           }
 
           override fun onComplete() {
           }
 
           override fun onError(e: Throwable) {
-            resultListErrorObservable.onNext(e as HttpException)
+            resultListErrorObservable.postValue(e as HttpException)
           }
         })
     compositeDisposable.add(disposable)
@@ -60,6 +52,12 @@ class MainViewModel() {
   }
 
   fun doOnItemClick(position: Int) {
-    itemObservable.onNext(entityList[position])
+    itemObservable.postValue(entityList[position])
   }
+
+  fun getResultListObservable(): LiveData<List<String>> = resultListObservable
+  fun getResultListErrorObservable(): LiveData<HttpException> = resultListErrorObservable
+  fun getItemObservable(): LiveData<MainModel.ResultEntity> = itemObservable
+
+
 }

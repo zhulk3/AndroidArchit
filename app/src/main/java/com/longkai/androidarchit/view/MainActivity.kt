@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.longkai.androidarchit.R
@@ -55,9 +56,12 @@ class MainActivity : AppCompatActivity() {
 
   @SuppressLint("CheckResult")
   private fun listenToObservable() {
-    viewModel.resultListObservable.subscribe { hideProgressBar();updateRecyclerView(it) }
-    viewModel.itemObservable.subscribe { DetailActivity.startDetailActivity(this, it) }
-    viewModel.resultListErrorObservable.subscribe { hideProgressBar();showError() }
+    viewModel.getResultListObservable()
+      .observe(this, Observer { hideProgressBar();updateRecyclerView(it) })
+    viewModel.getItemObservable()
+      .observe(this, Observer { DetailActivity.startDetailActivity(this, it) })
+    viewModel.getResultListErrorObservable()
+      .observe(this, Observer { hideProgressBar();showError() })
   }
 
   override fun onResume() {
