@@ -1,2 +1,2 @@
 # AndroidArchit
-study android architecture
+study android architecture, see master branch.
